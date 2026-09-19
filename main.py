@@ -18,12 +18,10 @@ from telegram.ext import (
 # CONFIGURATION
 # =========================
 
-BOT_TOKEN = "TON_BOT_TOKEN"
 
-MESSAGE_TEXT = "Bonjour, voici ton message !"
-
-VIDEO_NOTE_FILE_ID = "TON_VIDEO_NOTE_FILE_ID"
-
+BOT_TOKEN = "8643005430:AAGlH70LtttFkE-z-ZBcuPjJ5uNDMXMqY_U"
+MESSAGE_TEXT = "Tiens moi au courant 🔥"
+VIDEO_NOTE_FILE_ID = "start.mp4"   # file_id Telegram OU chemin local vers un .mp4
 USERS_FILE = "users.json"
 
 
