@@ -65,14 +65,14 @@ async def handle_go(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        # 1. Réponse texte
-        await message.reply_text(MESSAGE_TEXT)
+        
 
         # 2. Réponse note vidéo
         await message.reply_video_note(
             video_note=VIDEO_NOTE_FILE_ID
         )
-
+        # 1. Réponse texte
+        await message.reply_text(MESSAGE_TEXT)
         # Enregistrer après succès
         processed_users.add(user_id)
         save_users(processed_users)
