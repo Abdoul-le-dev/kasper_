@@ -1,5 +1,4 @@
 
-
 """
 Bot Telegram Business — API Bot officielle uniquement (aucune lib non officielle).
 
@@ -22,12 +21,11 @@ from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filte
 
 
 
-
-
 BOT_TOKEN = "8643005430:AAGlH70LtttFkE-z-ZBcuPjJ5uNDMXMqY_U"
 MESSAGE_TEXT = "Tiens moi au courant 🔥"
 VIDEO_NOTE_FILE_ID = "start.mp4"   # file_id Telegram OU chemin local vers un .mp4
 USERS_FILE = "users.json"
+
 
 
 def load_users() -> set:
@@ -58,6 +56,13 @@ async def handle_go(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     business_connection_id = message.business_connection_id
     chat_id = message.chat_id
     user_id = message.from_user.id
+
+    # --- DEBUG : à retirer une fois le problème résolu ---
+    print(
+        f"[DEBUG] chat_type={message.chat.type} chat_id={chat_id} "
+        f"from_user={user_id} business_connection_id={business_connection_id}"
+    )
+    # -------------------------------------------------------
 
     # Vérification anti-doublon : a-t-on déjà traité cet utilisateur ?
     if user_id in processed_users:
