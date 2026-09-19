@@ -49,90 +49,38 @@ processed_users = load_users()
 # TRAITEMENT DU MESSAGE GO
 # =========================
 
-async def handle_go(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def handle_go(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    message = update.effective_message
+    message = update.business_message
 
-    if message is None or not message.text:
+    if not message or not message.text:
         return
 
-    # Vérifie le message GO
     if message.text.strip().lower() != "go":
         return
 
-    # Récupération des informations
-    business_connection_id = message.business_connection_id
-    chat_id = message.chat_id
     user_id = message.from_user.id
 
-    print(
-        f"[DEBUG] chat_id={chat_id} "
-        f"user_id={user_id} "
-        f"business_connection_id={business_connection_id}"
-    )
-
-    # Évite les doublons
     if user_id in processed_users:
-        print(f"[INFO] Utilisateur déjà traité : {user_id}")
-        return
-
-    # Vérification Business
-    if not business_connection_id:
-        print("[ERREUR] Aucune connexion Business trouvée")
         return
 
     try:
+        # 1. Réponse texte
+        await message.reply_text(MESSAGE_TEXT)
 
-        # Vérifier la connexion Business
-        business_connection = await context.bot.get_business_connection(
-            business_connection_id
+        # 2. Réponse note vidéo
+        await message.reply_video_note(
+            video_note=VIDEO_NOTE_FILE_ID
         )
 
-        if not business_connection.is_enabled:
-            print("[ERREUR] Connexion Business désactivée")
-            return
-
-        # =========================
-        # ENVOI DU MESSAGE TEXTE
-        # =========================
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=MESSAGE_TEXT,
-            business_connection_id=business_connection_id
-        )
-
-        # =========================
-        # ENVOI DE LA NOTE VIDÉO
-        # =========================
-
-        await context.bot.send_video_note(
-            chat_id=chat_id,
-            video_note=VIDEO_NOTE_FILE_ID,
-            business_connection_id=business_connection_id
-        )
-
-        # =========================
-        # ENREGISTREMENT UTILISATEUR
-        # =========================
-
+        # Enregistrer après succès
         processed_users.add(user_id)
         save_users(processed_users)
 
         print(f"[OK] Messages envoyés à {user_id}")
 
     except Exception as e:
-
-        print(
-            f"[ERREUR] Envoi impossible pour {user_id} : {e}"
-        )
-
-        return
-
-
+        print(f"[ERREUR] {e}")
 # =========================
 # DÉMARRAGE DU BOT
 # =========================
