@@ -1,36 +1,40 @@
 
-"""
-Bot Telegram Business — API Bot officielle uniquement (aucune lib non officielle).
 
-Fonctionnement :
-- Le bot est connecté à un compte Telegram Business (Connected Business Bots).
-- Telegram envoie alors les messages du compte Business dans le champ
-  `business_message` de chaque Update (et non `message`).
-- On utilise `update.effective_message`, qui pointe automatiquement vers ce
-  `business_message` (PTB le gère nativement depuis la Bot API 7.2 / PTB 21.1).
-- Pour répondre "au nom" du compte Business, chaque appel d'envoi doit inclure
-  le paramètre officiel `business_connection_id` (documenté ici :
-  https://core.telegram.org/bots/api#sendmessage /  #sendvideonote).
-"""
 
-import json
 import os
+import json
 
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
 
 
+# =========================
+# CONFIGURATION
+# =========================
 
-BOT_TOKEN = "8643005430:AAGlH70LtttFkE-z-ZBcuPjJ5uNDMXMqY_U"
-MESSAGE_TEXT = "Tiens moi au courant 🔥"
-VIDEO_NOTE_FILE_ID = "start.mp4"   # file_id Telegram OU chemin local vers un .mp4
+BOT_TOKEN = "TON_BOT_TOKEN"
+
+MESSAGE_TEXT = "Bonjour, voici ton message !"
+
+VIDEO_NOTE_FILE_ID = "TON_VIDEO_NOTE_FILE_ID"
+
 USERS_FILE = "users.json"
 
 
+# =========================
+# GESTION DES UTILISATEURS
+# =========================
 
 def load_users() -> set:
     if not os.path.exists(USERS_FILE):
         return set()
+
     with open(USERS_FILE, "r") as f:
         return set(json.load(f))
 
@@ -40,67 +44,117 @@ def save_users(user_ids: set) -> None:
         json.dump(list(user_ids), f)
 
 
-# Chargée une fois au démarrage, mise à jour à chaque nouvel envoi
 processed_users = load_users()
 
 
-async def handle_go(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # effective_message pointe vers business_message pour les updates Business
+# =========================
+# TRAITEMENT DU MESSAGE GO
+# =========================
+
+async def handle_go(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+) -> None:
+
     message = update.effective_message
+
     if message is None or not message.text:
         return
 
+    # Vérifie le message GO
     if message.text.strip().lower() != "go":
         return
 
+    # Récupération des informations
     business_connection_id = message.business_connection_id
     chat_id = message.chat_id
     user_id = message.from_user.id
 
-    # --- DEBUG : à retirer une fois le problème résolu ---
     print(
-        f"[DEBUG] chat_type={message.chat.type} chat_id={chat_id} "
-        f"from_user={user_id} business_connection_id={business_connection_id}"
+        f"[DEBUG] chat_id={chat_id} "
+        f"user_id={user_id} "
+        f"business_connection_id={business_connection_id}"
     )
-    # -------------------------------------------------------
 
-    # Vérification anti-doublon : a-t-on déjà traité cet utilisateur ?
+    # Évite les doublons
     if user_id in processed_users:
+        print(f"[INFO] Utilisateur déjà traité : {user_id}")
+        return
+
+    # Vérification Business
+    if not business_connection_id:
+        print("[ERREUR] Aucune connexion Business trouvée")
         return
 
     try:
-        # 1. Message texte, envoyé au nom du compte Business
+
+        # Vérifier la connexion Business
+        business_connection = await context.bot.get_business_connection(
+            business_connection_id
+        )
+
+        if not business_connection.is_enabled:
+            print("[ERREUR] Connexion Business désactivée")
+            return
+
+        # =========================
+        # ENVOI DU MESSAGE TEXTE
+        # =========================
+
         await context.bot.send_message(
             chat_id=chat_id,
             text=MESSAGE_TEXT,
-            business_connection_id=business_connection_id,
+            business_connection_id=business_connection_id
         )
 
-        # 2. Note vidéo, envoyée au nom du compte Business
+        # =========================
+        # ENVOI DE LA NOTE VIDÉO
+        # =========================
+
         await context.bot.send_video_note(
             chat_id=chat_id,
             video_note=VIDEO_NOTE_FILE_ID,
-            business_connection_id=business_connection_id,
+            business_connection_id=business_connection_id
         )
+
+        # =========================
+        # ENREGISTREMENT UTILISATEUR
+        # =========================
+
+        processed_users.add(user_id)
+        save_users(processed_users)
+
+        print(f"[OK] Messages envoyés à {user_id}")
+
     except Exception as e:
-        print(f"Erreur d'envoi pour l'utilisateur {user_id} : {e}")
-        return  # on ne l'enregistre pas : il pourra être retraité au prochain "GO"
 
-    # Enregistrement UNIQUEMENT après un envoi réussi, pour éviter tout doublon
-    processed_users.add(user_id)
-    save_users(processed_users)
+        print(
+            f"[ERREUR] Envoi impossible pour {user_id} : {e}"
+        )
+
+        return
 
 
-def main() -> None:
+# =========================
+# DÉMARRAGE DU BOT
+# =========================
+
+def main():
+
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # filters.TEXT couvre aussi bien les messages classiques que les
-    # business_message depuis PTB 21.1 (Bot API 7.2)
-    app.add_handler(MessageHandler(filters.TEXT, handle_go))
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT,
+            handle_go
+        )
+    )
 
-    print("Bot démarré, en attente du message 'GO'...")
-    # allowed_updates=Update.ALL_TYPES garantit la réception des business_message
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    print("Bot démarré, en attente de GO...")
+
+    app.run_polling(
+        allowed_updates=Update.ALL_TYPES
+    )
 
 
 if __name__ == "__main__":
