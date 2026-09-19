@@ -12,9 +12,9 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
 # --- Configuration ---
-BOT_TOKEN = os.environ["BOT_TOKEN"]  # défini avant de lancer le script
-VIDEO_NOTE_PATH = "video_note.mp4"   # ta vidéo ronde (format carré, .mp4)
-TEXT_MESSAGE = "Voici le message qui accompagne la vidéo 👇"
+BOT_TOKEN = "8643005430:AAGlH70LtttFkE-z-ZBcuPjJ5uNDMXMqY_U" # défini avant de lancer le script
+VIDEO_NOTE_PATH = "start.mp4"   # ta vidéo ronde (format carré, .mp4)
+TEXT_MESSAGE = "Tiens moi au courant 🔥"
 SENT_USERS_FILE = "sent_users.json"
 
 
