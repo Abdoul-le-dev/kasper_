@@ -19,7 +19,7 @@ from telegram.ext import (
 # =========================
 
 
-BOT_TOKEN = "8643005430:AAGlH70LtttFkE-z-ZBcuPjJ5uNDMXMqY_U"
+BOT_TOKEN = "8876665789:AAG_pf08hbL3pDKeJ2zmxVLW7C8X00w5UbQ"
 MESSAGE_TEXT = "Tiens moi au courant 🔥"
 VIDEO_NOTE_FILE_ID = "start.mp4"   # file_id Telegram OU chemin local vers un .mp4
 USERS_FILE = "users.json"
