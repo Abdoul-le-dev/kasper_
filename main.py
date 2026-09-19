@@ -16,11 +16,11 @@ Fonctionnement :
 
 import json
 import os
-from dotenv import load_dotenv
+
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
-load_dotenv()
+
 
 
 
